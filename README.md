@@ -146,7 +146,8 @@ while True:
         "Accel X:%.2f Y:%.2f Z:%.2f ms^2 Gyro X:%.2f Y:%.2f Z:%.2f radians/s"
         % (sensor.acceleration + sensor.gyro)
     )
-    time.sleep(0.05)```
+    time.sleep(0.05)
+```
 
 After you have setup the code you can access the console and should recieve output:
 ```
