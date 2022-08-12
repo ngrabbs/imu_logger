@@ -104,7 +104,8 @@ pi@raspberrypi:~ $ cd Adafruit_CircuitPython_LSM6DS/
 pi@raspberrypi:~/Adafruit_CircuitPython_LSM6DS $ ls
 adafruit_lsm6ds  CODE_OF_CONDUCT.md  docs  examples  LICENSE  LICENSES  optional_requirements.txt  pyproject.toml  README.rst  README.rst.license  requirements.txt
 pi@raspberrypi:~/Adafruit_CircuitPython_LSM6DS $ sudo cp -r adafruit_lsm6ds /media/lib/
-pi@raspberrypi:~/Adafruit_CircuitPython_LSM6DS $```
+pi@raspberrypi:~/Adafruit_CircuitPython_LSM6DS $
+```
 
 Second setup some example code in code.py (Note you may have to tweak what device you have):
 ```python
