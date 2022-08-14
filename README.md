@@ -6,6 +6,9 @@ I'm using a adafruit feather [rp2040](https://www.adafruit.com/product/4884) and
 ![hardware setup](images/hardware_setup.jpg)
 
 # Getting started
+## Uploading CircuitPython
+Install the CircuitPython UF2 with this guide: https://learn.adafruit.com/intro-to-rp2040-pio-with-circuitpython/installing-circuitpython
+
 ## Blink / Console
 First plug your RP2040 into your raspberry pi as shown in the hardware section
 
@@ -173,3 +176,8 @@ Code done running.
 
 Press any key to enter the REPL. Use CTRL-D to reload.
 ```
+
+# References
+https://learn.adafruit.com/intro-to-rp2040-pio-with-circuitpython/installing-circuitpython
+https://learn.adafruit.com/cpu-temperature-logging-with-circuit-python/writing-to-the-filesystem
+https://learn.adafruit.com/circuitpython-101-state-machines/using-classes
