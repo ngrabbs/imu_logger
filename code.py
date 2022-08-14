@@ -2,6 +2,7 @@ import board
 import digitalio
 import time
 from adafruit_debouncer import Debouncer
+from adafruit_datetime import datetime
 
 SWITCH_PIN = board.A1
 RECORD_TIME = 10
@@ -11,7 +12,23 @@ switch_io.direction = digitalio.Direction.INPUT
 switch_io.pull = digitalio.Pull.UP
 switch = Debouncer(switch_io)
 
-######
+###### Helper Functions ######
+
+def check_space():
+    # Is this possible?
+    return True
+
+def create_file():
+    now = datetime.now()
+    filename = "imu_{}{}{}_{}{}{}".format(now.year, now.month, now.day, now.hour, now.minute, now.second)
+    try:
+        with open("/{}.txt".format(filename), "w") as fp:
+            fp.write("{}\r\n".format(now))
+    except Exception as e:
+        print(e)
+    return filename
+
+###### Classes ######
 class StateMachine(object):
 
     def __init__(self):
@@ -82,26 +99,28 @@ class RecordingState(State):
 
     def enter(self, machine):
         State.enter(self, machine)
+        self.filename = create_file()
         self.future = time.monotonic() + RECORD_TIME
-        # TO-DO: Setup file to write
-        # Need to figure out where we will write
 
     def exit(self, machine):
         State.exit(self, machine)
-        # TO-DO: Finalize file write and close.
-        # I haven't found any info on writing to 
-        # the built in flash. 
+        self.filename = None
 
     def update(self, machine):
         if State.update(self, machine):
-            # TO-DO: Write to file here
             now = time.monotonic()
             if now >= self.future:
                 machine.go_to_state('idle')
             if switch.fell:
                 machine.go_to_state('recording')
-            
-######
+
+            # If no conditions, write the file
+            if self.filename:
+                with open("/{}.txt".format(self.filename), "a") as fp:
+                    # Write Gyro Data
+                    fp.write("hello, world!\r\n")
+                
+###### MAIN ######
 
 machine = StateMachine()
 machine.add_state(IdleState())
