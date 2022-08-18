@@ -17,11 +17,10 @@ from adafruit_lsm6ds.lsm6dsox import LSM6DSOX as LSM6DS
 
 i2c = board.I2C()
 sensor = LSM6DS(i2c)
-sensor.accelerometer_range = AccelRange.RANGE_8G
-sensor.gyro_range = GyroRange.RANGE_2000_DPS
-sensor.accelerometer_data_rate = Rate.RATE_1_66K_HZ
-# sensor.accelerometer_data_rate = Rate.RATE_12_5_HZ
-sensor.gyro_data_rate = Rate.RATE_1_66K_HZ
+sensor.accelerometer_range = AccelRange.RANGE_2G
+sensor.gyro_range = GyroRange.RANGE_125_DPS
+sensor.accelerometer_data_rate = Rate.RATE_1_6_HZ
+sensor.gyro_data_rate = Rate.RATE_1_6_HZ
 ########### END IMU ##############
 
 ########### BUTTON ###############
@@ -62,7 +61,6 @@ class DisplayHandler(object):
             self.text = text
             text_area = label.Label(terminalio.FONT, text=text, color=0xFFFF00, x=1, y=15)
             self.display.show(text_area)
-
 
 class StateMachine(object):
 
@@ -162,11 +160,13 @@ class RecordingState(State):
         State.enter(self, machine)
         self.fileHandler = create_file()
         self.future = time.monotonic() + RECORD_TIME
+        self.array = []
 
     def exit(self, machine):
         State.exit(self, machine)
         if self.fileHandler:
             self.fileHandler = None
+        print(len(self.array))
 
     def update(self, machine):
         if State.update(self, machine):
@@ -176,14 +176,15 @@ class RecordingState(State):
             elif switch.fell:
                 machine.go_to_state('armed')
             else:
-                if self.fileHandler:
-                    self.fileHandler.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % (sensor.acceleration + sensor.gyro))
-                else:
-                    # Possible error state?
-                    print("Error state: ", machine.state.name)
-                    machine.go_to_state('idle')
-                    machine.error = True
-                    display.update("Err: unable to write")
+                self.array.append("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % (sensor.acceleration + sensor.gyro))
+                # if self.fileHandler:
+                #     self.fileHandler.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % (sensor.acceleration + sensor.gyro))
+                # else:
+                #     # Possible error state?
+                #     print("Error state: ", machine.state.name)
+                #     machine.go_to_state('idle')
+                #     machine.error = True
+                #     display.update("Err: unable to write")
 
 ###### MAIN ######
 display = DisplayHandler()
