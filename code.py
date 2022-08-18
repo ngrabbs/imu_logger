@@ -174,13 +174,12 @@ class RecordingState(State):
                 machine.go_to_state('armed')
             
             if self.fileHandler:
-                data = sensor.acceleration + sensor.gyro
-                self.fileHandler.write("AX:%.2fAY,:%.2f,AZ:%.2f,GX:%.2f,GY:%.2f,GZ:%.2f\r\n" % data)
+                self.fileHandler.write("AX:%.2fAY,:%.2f,AZ:%.2f,GX:%.2f,GY:%.2f,GZ:%.2f\r\n" % (sensor.acceleration + sensor.gyro))
             else:
                 # Possible error state?
                 display.update("Error: no filehandler")
                 #print("No filehandler")
-                machine.go_to_state('idle')
+                #machine.go_to_state('idle')
 
 ###### MAIN ######
 display = DisplayHandler()
