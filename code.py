@@ -34,18 +34,6 @@ switch_io.pull = digitalio.Pull.UP
 switch = Debouncer(switch_io)
 ########### END BUTTON ###########
 
-########### DISPLAY ##############
-# from adafruit_display_text import label
-# import adafruit_displayio_ssd1306
-# displayio.release_displays()
-# display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
-# display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=128, height=32)
-
-# # Make the display context
-# splash = displayio.Group()
-# display.show(splash)
-# ########### END DISPLAY ##########
-
 ###### Helper Functions ######
 
 def create_file():
@@ -95,7 +83,7 @@ class StateMachine(object):
 
     def update(self):
         if self.state:
-            print('Updating %s' % (self.state.name))
+            #print('Updating %s' % (self.state.name))
             display.update(self.state.name)
             self.state.update(self)
 
@@ -134,10 +122,29 @@ class IdleState(State):
 
     def update(self, machine):
         if switch.fell:
-            machine.go_to_state('recording')
+            machine.go_to_state('armed')
 
 # TO-DO: Create arm state
 # Trigger indle -> trigger pull
+class ArmedState(State):
+
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def name(self):
+        return 'armed'
+
+    def enter(self, machine):
+        State.enter(self, machine)
+
+    def exit(self, machine):
+        State.exit(self, machine)
+
+    def update(self, machine):
+        if State.update(self, machine):
+            if switch.rose:
+                machine.go_to_state('recording')
 
 class RecordingState(State):
     
@@ -164,10 +171,16 @@ class RecordingState(State):
             if now >= self.future:
                 machine.go_to_state('idle')
             if switch.fell:
-                machine.go_to_state('recording')
-                
+                machine.go_to_state('armed')
+            
             if self.fileHandler:
-                self.fileHandler.write("Accel X:%.2f Y:%.2f Z:%.2f ms^2\r\n" % (sensor.acceleration))
+                data = sensor.acceleration + sensor.gyro
+                self.fileHandler.write("AX:%.2fAY,:%.2f,AZ:%.2f,GX:%.2f,GY:%.2f,GZ:%.2f\r\n" % data)
+            else:
+                # Possible error state?
+                display.update("Error: no filehandler")
+                #print("No filehandler")
+                machine.go_to_state('idle')
 
 ###### MAIN ######
 display = DisplayHandler()
@@ -175,6 +188,7 @@ display = DisplayHandler()
 machine = StateMachine()
 machine.add_state(IdleState())
 machine.add_state(RecordingState())
+machine.add_state(ArmedState())
 
 machine.go_to_state('idle')
 
