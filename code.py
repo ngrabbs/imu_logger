@@ -60,7 +60,7 @@ class DisplayHandler(object):
     def update(self, text):
         if self.text != text:
             self.text = text
-            text_area = label.Label(terminalio.FONT, text=text, color=0xFFFF00, x=28, y=15)
+            text_area = label.Label(terminalio.FONT, text=text, color=0xFFFF00, x=1, y=15)
             self.display.show(text_area)
 
 
@@ -69,6 +69,7 @@ class StateMachine(object):
     def __init__(self):
         self.state = None
         self.states = {}
+        self.error = False
 
     def add_state(self, state):
         self.states[state.name] = state
@@ -84,7 +85,9 @@ class StateMachine(object):
     def update(self):
         if self.state:
             #print('Updating %s' % (self.state.name))
-            display.update(self.state.name)
+            if not self.error:
+                display.update(self.state.name)
+            
             self.state.update(self)
 
 class State(object):
@@ -170,16 +173,17 @@ class RecordingState(State):
             now = time.monotonic()
             if now >= self.future:
                 machine.go_to_state('idle')
-            if switch.fell:
+            elif switch.fell:
                 machine.go_to_state('armed')
-            
-            if self.fileHandler:
-                self.fileHandler.write("AX:%.2fAY,:%.2f,AZ:%.2f,GX:%.2f,GY:%.2f,GZ:%.2f\r\n" % (sensor.acceleration + sensor.gyro))
             else:
-                # Possible error state?
-                display.update("Error: no filehandler")
-                #print("No filehandler")
-                #machine.go_to_state('idle')
+                if self.fileHandler:
+                    self.fileHandler.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % (sensor.acceleration + sensor.gyro))
+                else:
+                    # Possible error state?
+                    print("Error state: ", machine.state.name)
+                    machine.go_to_state('idle')
+                    machine.error = True
+                    display.update("Err: unable to write")
 
 ###### MAIN ######
 display = DisplayHandler()
