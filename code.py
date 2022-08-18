@@ -22,11 +22,11 @@ def create_file():
     now = datetime.now()
     filename = "imu_{}{}{}_{}{}{}".format(now.year, now.month, now.day, now.hour, now.minute, now.second)
     try:
-        with open("/{}.txt".format(filename), "w") as fp:
-            fp.write("{}\r\n".format(now))
+        fp = open("/{}.txt".format(filename), "w")
+        return fp
     except Exception as e:
         print(e)
-    return filename
+        return None
 
 ###### Classes ######
 class StateMachine(object):
@@ -99,12 +99,14 @@ class RecordingState(State):
 
     def enter(self, machine):
         State.enter(self, machine)
-        self.filename = create_file()
+        self.fileHandler = create_file()
         self.future = time.monotonic() + RECORD_TIME
 
     def exit(self, machine):
         State.exit(self, machine)
-        self.filename = None
+        if self.fileHandler:
+            self.fileHandler.close()
+            self.fileHandler = None
 
     def update(self, machine):
         if State.update(self, machine):
@@ -115,10 +117,9 @@ class RecordingState(State):
                 machine.go_to_state('recording')
 
             # If no conditions, write the file
-            if self.filename:
-                with open("/{}.txt".format(self.filename), "a") as fp:
-                    # Write Gyro Data
-                    fp.write("hello, world!\r\n")
+            # Write Gyro Data
+            if self.fileHandler:
+                self.fileHandler.write("{} Sensor Data\r\n".format(time.monotonic()))
                 
 ###### MAIN ######
 
