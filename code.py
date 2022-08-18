@@ -47,19 +47,16 @@ display.show(splash)
 
 ###### Helper Functions ######
 
-def check_space():
-    # Is this possible?
-    return True
-
 def create_file():
     now = datetime.now()
     filename = "imu_{}{}{}_{}{}{}".format(now.year, now.month, now.day, now.hour, now.minute, now.second)
     try:
-        with open("/{}.txt".format(filename), "w") as fp:
-            fp.write("{}\r\n".format(now))
+        fp = open("/{}.txt".format(filename), "w")
+        fp.write("START: {}\r\n".format(now))
     except Exception as e:
         print(e)
-    return filename
+        return False
+    return fp
 
 ###### Classes ######
 class StateMachine(object):
@@ -81,7 +78,7 @@ class StateMachine(object):
 
     def update(self):
         if self.state:
-#            print('Updating %s' % (self.state.name))
+            print('Updating %s' % (self.state.name))
             self.state.update(self)
 
 class State(object):
@@ -132,21 +129,13 @@ class RecordingState(State):
 
     def enter(self, machine):
         State.enter(self, machine)
-        self.filename = create_file()
+        self.fileHandler = create_file()
         self.future = time.monotonic() + RECORD_TIME
-	    self.data = []
 
     def exit(self, machine):
         State.exit(self, machine)
-        self.filename = None
-        self.data = None
-        if self.filename:
-            write open("/{}.txt".format(self.filename), "a") as fp:
-                # Write Gyro Data
-	            for x in self.data:
-                    #fp.write("Accel X:%.2f Y:%.2f Z:%.2f ms^2 Gyro X:%.2f Y:%.2f Z:%.2f radians/s\r\n" % (sensor.acceleration + sensor.gyro))
-                    print(x)
-                    fp.write("Accel X:%.2f Y:%.2f Z:%.2f ms^2\r\n" % (sensor.acceleration))
+        if self.fileHandler:
+            self.fileHandler = None
 
     def update(self, machine):
         if State.update(self, machine):
@@ -155,9 +144,9 @@ class RecordingState(State):
                 machine.go_to_state('idle')
             if switch.fell:
                 machine.go_to_state('recording')
-            #if self.data ## something different needs to happen here
-            self.data.append(sensor.acceleration)
-            ## doesnt work very well ^^^
+                
+            if self.fileHandler:
+                self.fileHandler.write("Accel X:%.2f Y:%.2f Z:%.2f ms^2\r\n" % (sensor.acceleration))
 
 ###### MAIN ######
 
