@@ -40,7 +40,7 @@ def create_file():
     now = datetime.now()
     filename = "imu_{}{}{}_{}{}{}".format(now.year, now.month, now.day, now.hour, now.minute, now.second)
     try:
-        fp = open("/{}.txt".format(filename), "w")
+        fp = open("/{}.txt".format(filename), "a")
         fp.write("START: {}\r\n".format(now))
     except Exception as e:
         print(e)
@@ -166,8 +166,8 @@ class RecordingState(State):
     def exit(self, machine):
         State.exit(self, machine)
         if self.fileHandler:
-            self.fileHandler.write(str(self.array))
-            self.array = []
+            # self.fileHandler.write(str(self.array))
+            # self.array = []
             self.fileHandler.close()
             self.fileHandler = None
 
@@ -180,20 +180,21 @@ class RecordingState(State):
             elif switch.fell:
                 machine.go_to_state('armed')
             else:
-                if len(self.array) > 200:
-                    if self.fileHandler:
-                        print("writing...")
-                        self.fileHandler.write(str(self.array))
-                        self.array = []
-                self.array.append((sensor.acceleration + sensor.gyro))
-                # if self.fileHandler:
-                #     self.fileHandler.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % (sensor.acceleration + sensor.gyro))
-                # else:
-                #     # Possible error state?
-                #     print("Error state: ", machine.state.name)
-                #     machine.go_to_state('idle')
-                #     machine.error = True
-                #     display.update("Err: unable to write")
+                # if len(self.array) > 200:
+                #     if self.fileHandler:
+                #         print("writing...")
+                #         self.fileHandler.write(str(self.array))
+                #         self.array = []
+                # self.array.append((sensor.acceleration + sensor.gyro))
+                if self.fileHandler:
+                    self.fileHandler.write(str((sensor.acceleration + sensor.gyro)))
+                    #self.fileHandler.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % (sensor.acceleration + sensor.gyro))
+                else:
+                    # Possible error state?
+                    print("Error state: ", machine.state.name)
+                    machine.go_to_state('idle')
+                    machine.error = True
+                    display.update("Err: unable to write")
 
 ###### MAIN ######
 display = DisplayHandler()
