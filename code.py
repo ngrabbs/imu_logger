@@ -3,6 +3,7 @@ import digitalio
 import displayio
 import terminalio
 import time
+import sys
 from adafruit_debouncer import Debouncer
 from adafruit_datetime import datetime
 from adafruit_display_text import label
@@ -165,18 +166,26 @@ class RecordingState(State):
     def exit(self, machine):
         State.exit(self, machine)
         if self.fileHandler:
+            self.fileHandler.write(str(self.array))
+            self.array = []
+            self.fileHandler.close()
             self.fileHandler = None
-        print(len(self.array))
 
     def update(self, machine):
         if State.update(self, machine):
             now = time.monotonic()
+            time.monotonic() - start / 1000000
             if now >= self.future:
                 machine.go_to_state('idle')
             elif switch.fell:
                 machine.go_to_state('armed')
             else:
-                self.array.append("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % (sensor.acceleration + sensor.gyro))
+                if len(self.array) > 200:
+                    if self.fileHandler:
+                        print("writing...")
+                        self.fileHandler.write(str(self.array))
+                        self.array = []
+                self.array.append((sensor.acceleration + sensor.gyro))
                 # if self.fileHandler:
                 #     self.fileHandler.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % (sensor.acceleration + sensor.gyro))
                 # else:
