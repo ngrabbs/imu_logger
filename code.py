@@ -174,7 +174,7 @@ class RecordingState(State):
     def update(self, machine):
         if State.update(self, machine):
             now = time.monotonic()
-            time.monotonic() - start / 1000000
+            #time.monotonic() - start / 1000000
             if now >= self.future:
                 machine.go_to_state('idle')
             elif switch.fell:
