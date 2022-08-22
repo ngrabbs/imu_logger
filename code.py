@@ -29,8 +29,8 @@ sensor.gyro_data_rate = Rate.RATE_1_6_HZ
 ########### BUTTON ###############
 SWITCH_PIN = board.A1
 RECORD_TIME = 1
-ENABLE_UART_WRITE = 1
-ENABLE_FLASH_WRITE = 0
+ENABLE_UART_WRITE = 0 # testing around 120 writes per second
+ENABLE_FLASH_WRITE = 1 # testing around 81 writes per second
 ENABLE_DISPLAY_WRITE = 0
 
 switch_io = digitalio.DigitalInOut(SWITCH_PIN)
@@ -175,7 +175,6 @@ class RecordingState(State):
             uart.write(bytearray(str("<")))
         self.future = time.monotonic() + RECORD_TIME
         self.start_time = time.monotonic()
-        self.array = []
 
     def exit(self, machine):
         State.exit(self, machine)
@@ -184,8 +183,6 @@ class RecordingState(State):
             uart.write(bytearray(str(">")))
         
         if ENABLE_FLASH_WRITE and self.fileHandler:
-            self.fileHandler.write(str(self.array))
-            self.array = []
             self.fileHandler.close()
             self.fileHandler = None
 
@@ -205,12 +202,7 @@ class RecordingState(State):
 		    uart.write(bytearray(','.join(str(e) for e in rounded_accel_gyro)) + "\n")
 
                 if ENABLE_FLASH_WRITE and self.fileHandler:
-                     self.fileHandler.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % (sensor.acceleration + sensor.gyro))
-                     # Possible error state?
-                     print("Error state: ", machine.state.name)
-                     machine.go_to_state('idle')
-                     machine.error = True
-                     display.update("Err: unable to write")
+                     self.fileHandler.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % tuple(rounded_accel_gyro))
 
 ###### MAIN ######
 
