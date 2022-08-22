@@ -8,8 +8,6 @@ import sys
 import struct
 from adafruit_debouncer import Debouncer
 from adafruit_datetime import datetime
-#from adafruit_display_text import label
-#import adafruit_displayio_ssd1306
 
 ########### BEGIN IMU ##############
 from adafruit_lsm6ds import Rate, AccelRange, GyroRange
@@ -27,11 +25,11 @@ sensor.gyro_data_rate = Rate.RATE_1_6_HZ
 ########### END IMU ##############
 
 ########### BUTTON ###############
-SWITCH_PIN = board.A1
-RECORD_TIME = 1
+SWITCH_PIN = board.D6 # D6 A1
+RECORD_TIME = 10
 ENABLE_UART_WRITE = 0 # testing around 120 writes per second
 ENABLE_FLASH_WRITE = 1 # testing around 81 writes per second
-ENABLE_DISPLAY_WRITE = 0
+ENABLE_DISPLAY_WRITE = 1
 
 switch_io = digitalio.DigitalInOut(SWITCH_PIN)
 switch_io.direction = digitalio.Direction.INPUT
@@ -43,6 +41,12 @@ switch = Debouncer(switch_io)
 if ENABLE_UART_WRITE:
     uart = busio.UART(board.TX, board.RX, baudrate=115200)
 ########### END UART ###############
+
+########### BEGIN DISPLAY ##########
+if ENABLE_DISPLAY_WRITE:
+    from adafruit_display_text import label
+    import adafruit_displayio_ssd1306
+########### END DISPLAY ############
 
 ###### Helper Functions ######
 
@@ -202,7 +206,7 @@ class RecordingState(State):
 		    uart.write(bytearray(','.join(str(e) for e in rounded_accel_gyro)) + "\n")
 
                 if ENABLE_FLASH_WRITE and self.fileHandler:
-                     self.fileHandler.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % tuple(rounded_accel_gyro))
+                    self.fileHandler.write("%.3f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % tuple(rounded_accel_gyro))
 
 ###### MAIN ######
 
