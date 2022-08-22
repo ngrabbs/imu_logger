@@ -11,10 +11,6 @@ from adafruit_datetime import datetime
 #from adafruit_display_text import label
 #import adafruit_displayio_ssd1306
 
-########### BEGING UART ############
-uart = busio.UART(board.TX, board.RX, baudrate=115200)
-########### END UART ###############
-
 ########### BEGIN IMU ##############
 from adafruit_lsm6ds import Rate, AccelRange, GyroRange
 #from adafruit_lsm6ds.lsm6dsox import LSM6DSOX as LSM6DS
@@ -33,12 +29,20 @@ sensor.gyro_data_rate = Rate.RATE_1_6_HZ
 ########### BUTTON ###############
 SWITCH_PIN = board.A1
 RECORD_TIME = 1
+ENABLE_UART_WRITE = 1
+ENABLE_FLASH_WRITE = 0
+ENABLE_DISPLAY_WRITE = 0
 
 switch_io = digitalio.DigitalInOut(SWITCH_PIN)
 switch_io.direction = digitalio.Direction.INPUT
 switch_io.pull = digitalio.Pull.UP
 switch = Debouncer(switch_io)
 ########### END BUTTON ###########
+
+########### BEGIN UART #############
+if ENABLE_UART_WRITE:
+    uart = busio.UART(board.TX, board.RX, baudrate=115200)
+########### END UART ###############
 
 ###### Helper Functions ######
 
@@ -90,10 +94,9 @@ class StateMachine(object):
     def update(self):
         if self.state:
             #print('Updating %s' % (self.state.name))
-            #if not self.error:
-                #display.update(self.state.name)
-                #display.update(self.state.name)
-            
+            if not self.error:
+                if(ENABLE_DISPLAY_WRITE):
+                   display.update(self.state.name)
             self.state.update(self)
 
 class State(object):
@@ -166,21 +169,21 @@ class RecordingState(State):
 
     def enter(self, machine):
         State.enter(self, machine)
-        self.fileHandler = create_file()
+        if ENABLE_FLASH_WRITE:
+            self.fileHandler = create_file()
+        if ENABLE_UART_WRITE:
+            uart.write(bytearray(str("<")))
         self.future = time.monotonic() + RECORD_TIME
         self.start_time = time.monotonic()
         self.array = []
-        self.write_count = 0
-        uart.write(bytearray(str("<")))
 
     def exit(self, machine):
         State.exit(self, machine)
-        print("run time: ", time.monotonic() - self.start_time)
-        print("data points: ", str(self.write_count))
-        uart.write(bytearray(str(">")))
-        for x in self.array:
-             print(x)
-        if self.fileHandler:
+
+        if ENABLE_UART_WRITE:
+            uart.write(bytearray(str(">")))
+        
+        if ENABLE_FLASH_WRITE and self.fileHandler:
             self.fileHandler.write(str(self.array))
             self.array = []
             self.fileHandler.close()
@@ -197,19 +200,22 @@ class RecordingState(State):
             else:
                 rounded_accel_gyro = list(round(x, 2) for x in (sensor.acceleration + sensor.gyro))
 		rounded_accel_gyro.insert(0, round(time.monotonic() - self.start_time, 3))
-		uart.write(bytearray(','.join(str(e) for e in rounded_accel_gyro)) + "\n")
-                self.write_count = self.write_count + 1
 
-                # if self.fileHandler:
-                #     self.fileHandler.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % (sensor.acceleration + sensor.gyro))
-                #     # Possible error state?
-                #     print("Error state: ", machine.state.name)
-                #     machine.go_to_state('idle')
-                #     machine.error = True
-                #     display.update("Err: unable to write")
+                if ENABLE_UART_WRITE:
+		    uart.write(bytearray(','.join(str(e) for e in rounded_accel_gyro)) + "\n")
+
+                if ENABLE_FLASH_WRITE and self.fileHandler:
+                     self.fileHandler.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n" % (sensor.acceleration + sensor.gyro))
+                     # Possible error state?
+                     print("Error state: ", machine.state.name)
+                     machine.go_to_state('idle')
+                     machine.error = True
+                     display.update("Err: unable to write")
 
 ###### MAIN ######
-#display = DisplayHandler()
+
+if ENABLE_DISPLAY_WRITE:
+    display = DisplayHandler()
 
 machine = StateMachine()
 machine.add_state(IdleState())
