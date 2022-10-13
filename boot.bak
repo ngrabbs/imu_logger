@@ -1,6 +1,8 @@
 # https://learn.adafruit.com/cpu-temperature-logging-with-circuit-python/writing-to-the-filesystem
 # Required to give write access to code.py
 # if you get stuck read the link to get unstuck
+# import os
+# os.rename("/boot.py", "/boot.bak")
 
 import storage
 storage.remount("/", False)
