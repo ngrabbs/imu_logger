@@ -5,7 +5,13 @@ temp or something else: 1C */
 #include <stddef.h>
 #include <limits.h>
 #include "pico/stdlib.h"
+#ifndef HARDWARE_I2C_H
+#define HARDWARE_I2C_H
+
 #include "hardware/i2c.h"
+
+#endif // HARDWARE_I2C_H
+
 #include "gpio.h"
 #include "imu.h"
 
@@ -82,10 +88,9 @@ int main() {
 
     while(true)
     {
-        printf("%f\n", get_temp(i2c));
+        printf("%f\n", get_temp(i2c, LSM6DS33_ADDR, OUT_TEMP_L));
         sleep_ms(1000);
-    
-        get_accel(i2c, &acc_x_f, &acc_y_f, &acc_z_f);
+        get_accel(i2c, &acc_x_f, &acc_y_f, &acc_z_f, LSM6DS33_ADDR, OUTX_L_G);
     
     }
 

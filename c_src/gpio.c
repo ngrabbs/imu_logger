@@ -1,3 +1,8 @@
+#ifndef HARDWARE_I2C_H
+#define HARDWARE_I2C_H
+#include "hardware/i2c.h"
+#endif // HARDWARE_I2C_H
+
 // Write 1 byte to the specified register
 int reg_write(  i2c_inst_t *i2c,
                 const uint addr,

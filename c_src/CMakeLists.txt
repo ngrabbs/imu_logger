@@ -18,6 +18,8 @@ pico_sdk_init()
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME}
   main.c
+  imu.c
+  gpio.c
 )
 
 # Create map/bin/hex/uf2 files
