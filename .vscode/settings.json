@@ -1,3 +1,24 @@
 {
-  "cmake.sourceDirectory": "${workspaceFolder}/c_src"
+  // These settings tweaks to the cmake plugin will ensure
+  // that you debug using cortex-debug instead of trying to launch
+  // a Pico binary on the host
+  "cmake.sourceDirectory": "${workspaceFolder}/c_src",
+  "cmake.statusbar.advanced": {
+      "debug": {
+          "visibility": "hidden"
+      },
+      "launch": {
+          "visibility": "hidden"
+      },
+      "build": {
+          "visibility": "default"
+      },
+      "buildTarget": {
+          "visibility": "hidden"
+      }
+  },
+  "cmake.buildBeforeRun": true,
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "makefile.extensionOutputFolder": "./.vscode",
+  "cortex-debug.openocdPath": "/home/pi/pico/openocd/src/openocd"
 }

@@ -4,6 +4,10 @@ temp or something else: 1C */
 #include <stdio.h>
 #include <stddef.h>
 #include <limits.h>
+
+#include <string.h>
+
+#include <stdlib.h>
 #include "pico/stdlib.h"
 #ifndef HARDWARE_I2C_H
 #define HARDWARE_I2C_H
@@ -86,11 +90,34 @@ int main() {
         while (true);
     }
 
+        char buf[8];
+        int n;
+       int errno = 0;
     while(true)
     {
-        printf("%f\n", get_temp(i2c, LSM6DS33_ADDR, OUT_TEMP_L));
+        // how do we get user input?
+        // start the user interface
+        printf("hi welcome to what ever this is\n");
+        // scanf() -> a number from a menu
+        size_t len = sizeof(buf);
+        gets_s(buf, len);
+        printf("buf: %s\n", &buf);
+
+        /*
+        n = scanf("%m[a-z]", &buf);
+        if (n ==1) {
+            printf("read: %s\n", buf);
+            free(buf);
+        } else if (errno != 0) {
+            perror("scanf");
+        } else {
+            fprintf(stderr, "No matching characters\n");
+        }
+        */
         sleep_ms(1000);
-        get_accel(i2c, &acc_x_f, &acc_y_f, &acc_z_f, LSM6DS33_ADDR, OUTX_L_G);
+//        printf("%f\n", get_temp(i2c, LSM6DS33_ADDR, OUT_TEMP_L));
+//        sleep_ms(1000);
+//        get_accel(i2c, &acc_x_f, &acc_y_f, &acc_z_f, LSM6DS33_ADDR, OUTX_L_G);
     
     }
 
